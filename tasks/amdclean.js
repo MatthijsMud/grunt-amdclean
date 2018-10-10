@@ -10,14 +10,72 @@ module.exports = function(grunt)
 		
 	};
 	
-	// The "grunt-amdclean" delegates most options straight to "amdclean", some
-	// options make little sense in the context of Grunt however. Those are thus
-	// not supported by this module. The following is a listing of said options,
-	// and which alternative should be used.
-	var amdcleanOptionsThatShouldNotBeUsed = {
-		code: "Use Grunt's \"files\" property instead of specifying the \"code\" option.",
-		filePath: "Use Grunt's \"files\" property instead of specifying the \"filePath\" option.",
-		sourceMap: "Support for saving source maps is not yet implemented."
+	function warnAboutPossiblyUnsupportedOptions(options)
+	{
+		// Allow for checking whether provided options are possibly spelled wrong,
+		// so the user can be informed about them. This listing can also be used for
+		// pointing out that certain features of newer version of AMDClean might not
+		// work as intended.
+		var supportedOptions = [
+			"aggressiveOptimizations", 
+			"createAnonymousAMDModule",
+			"commentCleanName", 
+			"code",
+			"config", 
+			"escodegen", 
+			"esprima", 
+			"filePath",
+			"globalModules", 
+			"ignoreModules", 
+			"prefixMode", 
+			"prefixTransform", 
+			"removeAllRequires", 
+			"removeModules", 
+			"removeUseStricts", 
+			"shimOverrides", 
+			"transformAMDChecks", 
+			"wrap", 
+			"IIFEVariableNameTransform"
+		];
+		
+		for (var key in options)
+		{
+			if (options.hasOwnProperty(key))
+			{
+				if (supportedOptions.indexOf(key) === -1)
+				{
+					grunt.log.warn("Provided option \"" + key + "\" is not explicitly supported. ");
+				}
+			}
+		}
+	}
+	
+	function removeSetOptionsThatShouldNotBeUsed(options)
+	{
+		
+		// The "grunt-amdclean" delegates most options straight to "amdclean", some
+		// options make little sense in the context of Grunt however. Those are thus
+		// not supported by this module. The following is a listing of said options,
+		// and which alternative should be used.
+		var amdcleanOptionsThatShouldNotBeUsed = {
+			code: "Use Grunt's \"files\" property instead of specifying the \"code\" option.",
+			filePath: "Use Grunt's \"files\" property instead of specifying the \"filePath\" option.",
+			sourceMap: "Support for saving source maps is not yet implemented."
+		}
+		
+		// Inform the user of this module that certain options for amdclean are not
+		// supported by this Grunt plugin, and which option should instead be used.
+		for (var key in amdcleanOptionsThatShouldNotBeUsed)
+		{
+			if (amdcleanOptionsThatShouldNotBeUsed.hasOwnProperty(key))
+			{
+				if (options.hasOwnProperty(key))
+				{
+					grunt.log.warn(amdcleanOptionsThatShouldNotBeUsed[key]);
+					delete options[key];
+				}
+			}
+		}
 	}
 	
 	
@@ -25,17 +83,8 @@ module.exports = function(grunt)
 	{
 		var options = this.options(defaultOptions);
 		
-		// Inform the user of this module that certain options for amdclean are not
-		// supported by this Grunt plugin, and which option should instead be used.
-		for (var key in amdcleanOptionsThatShouldNotBeUsed)
-		{
-			if (key in options)
-			{
-				grunt.log.warn(amdcleanOptionsThatShouldNotBeUsed[key]);
-				delete options[key];
-			}
-		}
-		
+		warnAboutPossiblyUnsupportedOptions(options);
+		removeSetOptionsThatShouldNotBeUsed(options);
 		
 		this.files.forEach(function(file)
 		{
